@@ -9,22 +9,24 @@
             }
         </style>
     </head>
+    <!--Basically we want when the html loads up to start the game-->
     <body onload="startGame();">
         <script>
-            var myGamePiece;
-            var myBlaster = [];
-            var myObstacles = [];
-            var myScore;
+            var myGamePiece; //this is the player
+            var myBlaster = []; //this is every laser on the screen (cause you can still fire after shooting one)
+            var myObstacles = []; //all viruses on the course
+            var myScore; //this is the label
+            var Score = 0; //this is the counter to add to the label
 
-            function startGame() {
+            function startGame() { //on call, will create the player, the scoreboard and call the creation of the background
                 myGamePiece = new component(30, 30, "red", 10, 120,"immune");
                 myScore = new component("30px", "Consolas", "black", 280, 40, "text");
                 myGameArea.start();
             }
 
-            var myGameArea = {
+            var myGameArea = { 
                 canvas : document.createElement("canvas"),
-                start : function() {
+                start : function() { //this creates the background, setting the size of the game area, set update interval
                     //this.canvas.width = 480;
                     //this.canvas.height = 270;
                     this.canvas.width = 960;
@@ -42,7 +44,7 @@
                 }
             }
 
-            function component(width, height, color, x, y, type) {
+            function component(width, height, color, x, y, type) { //this is the function called for every object so that it can be created
                 this.type = type;
                 this.width = width;
                 this.height = height;
@@ -60,7 +62,7 @@
                         ctx.font = this.width + " " + this.height;
                         ctx.fillStyle = color;
                         ctx.fillText(this.text, this.x, this.y);
-                    } else if (this.type == "virus"){
+                    } else if (this.type == "virus"){ //create obstacle
                         
                         //base_image.onload = function(){
                         //    ctx.drawImage(base_image, this.x, this.y, 20, 20);
@@ -69,11 +71,11 @@
                         this.width = 40
                         this.height = 40
                         //ctx.fillRect(this.x, this.y, this.width, this.height);
-                    } else if(this.type == "immune"){
+                    } else if(this.type == "immune"){ //create player
                         ctx.drawImage(immune_image, this.x, this.y, 70, 70);
                         this.width = 70
                         this.height = 70
-                    } else if(this.type == "fire"){
+                    } else if(this.type == "fire"){ //create laser
                         ctx.fillStyle = color;
                         ctx.fillRect(this.x,this.y,60,5);
                         this.width = 60;
@@ -89,7 +91,7 @@
                     this.speedY = 0;        
                 }
                 this.crashWith = function(otherobj) {
-                    if (this.type == "fire"){
+                    if (this.type == "fire"){ //will check if laser and obstacle have met
                         var myleft = this.x;
                         var myright = this.x + (this.width);
                         var mytop = this.y;
@@ -103,7 +105,7 @@
                             crash = false;
                         }
                     }
-                    else {
+                    else { //will check if player and obstacle have met
                         var myleft = this.x;
                         var myright = this.x + (this.width)-20;
                         var mytop = this.y;
@@ -126,12 +128,17 @@
                 var x, height, gap, minHeight, maxHeight, minGap, maxGap;
                 for (i = 0; i < myObstacles.length; i += 1) {
                     for (m = 0; m < myBlaster.length; m += 1) {
-                        if (myBlaster[m].crashWith(myObstacles[i])) {
+                        if (myBlaster[m].crashWith(myObstacles[i])) { //deletes laser and obstacle that collided
                             myBlaster.splice(m,1);
                             myObstacles.splice(i,1);
+                            Score = Score + 1;
+                            myScore.text="SCORE: " + String(Score);
+                            //console.log(myScore.text);
+                            //console.log(myScore.type);  
+                            //myScore.update();
                         }
                     }
-                    if (myGamePiece.crashWith(myObstacles[i])) {
+                    if (myGamePiece.crashWith(myObstacles[i])) { //ends game if player and obstacle collide
                         myGameArea.stop();
                         return;
                     } 
@@ -150,11 +157,11 @@
                     checker = 1;
                     heights = [0];
                     for (i = 0; i < number; i += 1) {
-                        height = Math.floor(Math.random()*(maxHeight-minHeight+1)+minHeight);
+                        height = Math.floor(Math.random()*(maxHeight-minHeight+1)+minHeight); //create a random y coordinate for obstacle within canvas height
                         for (t=0; t < heights.length; t += 1){
                             //console.log(heights[t])
                             //console.log(height)
-                            if (Math.abs(heights[t] - height) > 20){
+                            if (Math.abs(heights[t] - height) > 20){ //make sure that there is space between obstacles (can delete)
                                 heights.push(height);
                                 gap = Math.floor((Math.random()*(maxGap-minGap)*10)+minGap);
                                 myObstacles.push(new component(10, height, "green", x, height,"virus"));
@@ -173,7 +180,7 @@
                     myBlaster[t].newPos();
                     myBlaster[t].update();
                 }
-                myScore.text="SCORE: " + myGameArea.frameNo;
+                //myScore.text="SCORE: " + myGameArea.frameNo;
                 myScore.update();
                 myGamePiece.newPos();    
                 myGamePiece.update();
@@ -206,7 +213,7 @@
             }
 
             function fire(){
-                myBlaster.push(new component(10,10,"red",myGamePiece.x+50,myGamePiece.y,"fire"));
+                myBlaster.push(new component(10,10,"red",myGamePiece.x+50,myGamePiece.y+(myGamePiece.width/2),"fire"));
             }
 
             document.onkeydown = function (e) {
@@ -225,6 +232,13 @@
                         break;
                 }
             };
+
+        //TO-DO
+        //Change player to have blaster in hand and make it yourself
+        //Make title card
+        //Make it so that the stage has a certain time limit to determine when they have reached the end of the stage
+        //Create background for stages
+        //Make stages slide
         </script>
         <!--<div style="text-align:center;width:480px;">
             <button id="up" onmousedown="moveup()" onmouseup="clearmove()" ontouchstart="moveup()">UP</button><br><br>
@@ -235,6 +249,5 @@
 
         <p>You are the lymphocyte (the blue blob on the left). The green things that come on the right are viruses. Your job is to shoot as many of the viruses as possible.</p>
         <p>Use the Up and Down keys to move your player. Press Spacebar to shoot lasers to destroy virus. If you get hit by virus, game over</p>
-        <p>Ignore scoreboard, I haven't changed that yet</p>
     </body>
 </html>
