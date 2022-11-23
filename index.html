@@ -7,7 +7,25 @@
                 border:1px solid #d3d3d3;
                 background-color: #f1f1f1;
             }
+            .card {
+                transition: transform .2s; /* Animation */
+            }
+
+            .card:hover {
+                transform: scale(1.2); /* (120% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
+            }
         </style>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
+
+        <!-- jQuery library -->
+        <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.slim.min.js"></script>
+
+        <!-- Popper JS -->
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+
+        <!-- Latest compiled JavaScript -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
     </head>
     <!--Basically we want when the html loads up to start the game-->
     <body onload="startGame();">
@@ -17,22 +35,96 @@
             var myObstacles = []; //all viruses on the course
             var myScore; //this is the label
             var Score = 0; //this is the counter to add to the label
+            var Lives = 10;
+            var Stage;
+            var Stop;
+            
 
             function startGame() { //on call, will create the player, the scoreboard and call the creation of the background
-                myGamePiece = new component(30, 30, "red", 10, 120,"immune");
+                myGamePiece = new component(30, 30, "red", 10, 80,"immune");
                 myScore = new component("30px", "Consolas", "black", 280, 40, "text");
-                myGameArea.start();
+                myScore.text = "SCORE: 0";
+                myLives = new component("30px", "Consolas", "black", 1000, 40, "text");
+                myLives.text = "LIVES: 10";
+                Stop = new component(20,20,"",30,30,"stop");
+                title_card = new component(30,30,"",30,30,"title");
+                title.start();
+                //myGameArea.start();
             }
 
+            var title = {
+                start : function() { //this creates the background, setting the size of the game area, set update interval
+                    var video = document.createElement("video");
+                    video.src = "Title card 720p.mp4";
+                    video.autoplay = true;
+                    video.muted = true;
+                    document.body.insertBefore(video, document.body.childNodes[0]);
+                    //video.addEventListener("play", () => {
+                    //    function step() {
+                    //        ctx.drawImage(video, 0, 0, 1280, 720);
+                    //        requestAnimationFrame(step);
+                    //    }
+                    //    requestAnimationFrame(step);
+                    //});
+                    video.addEventListener("click",function(){
+                        video.remove();
+                        stage_selection.start();
+                    });
+                }
+            }
+
+            var stage_selection = {
+                start : function() {
+                    //var area = document.createElement("div");
+                    //area.height = 720;
+                    //area.width = 1280;
+                    //area.backgroundImage = "stage_selection_background.png";
+                    //var stage1 = document.createElement("div");
+                    //stage1.className = "card";
+                    //document.body.insertBefore(area, document.body.childNodes[0]);
+                    var area = document.getElementsByClassName("area")[0];
+                    area.hidden = false;
+                    var nose = document.getElementById("nose");
+                    var circulatory = document.getElementById("heart");
+                    nose.addEventListener("click",function(){
+                        area.hidden = true;
+                        Stage = "olfactory";
+                        //myGameArea.start();
+                        instructions.start();
+                    })
+                    heart.addEventListener("click",function(){
+                        area.hidden = true;
+                        Stage = "circulatory";
+                        //myGameArea.start();
+                        instructions.start();
+                    })
+                }
+            }
+
+            var instructions = {
+                start : function() {
+                    if (Stage == "olfactory" || Stage == "circulatory"){
+                        var instructions = document.getElementsByClassName("normalInstructions")[0];
+                        instructions.hidden = false;
+                    }
+                    instructions.addEventListener("click",function(){
+                        instructions.hidden = true;
+                        myGameArea.start();
+                    })
+                }
+            }
             var myGameArea = { 
                 canvas : document.createElement("canvas"),
                 start : function() { //this creates the background, setting the size of the game area, set update interval
                     //this.canvas.width = 480;
                     //this.canvas.height = 270;
-                    this.canvas.width = 960;
-                    this.canvas.height = 540;
+                    //this.canvas.width = 960;
+                    //this.canvas.height = 540;
+                    this.canvas.width = 1280;
+                    this.canvas.height = 720;
                     this.context = this.canvas.getContext("2d");
                     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+                    choose_stage();
                     this.frameNo = 0;
                     this.interval = setInterval(updateGameArea, 20);
                     },
@@ -42,6 +134,22 @@
                 stop : function() {
                     clearInterval(this.interval);
                 }
+            }
+            function choose_stage() {
+                var canvas = document.getElementsByTagName("canvas")[0]
+                if (Stage == "olfactory"){
+                        //stage_image = new Image();
+                        //stage_image.src = 'olfactory stage.png'
+                        canvas.style.backgroundImage = 'url("olfactory stage.png")';
+                        //ctx = this.context;
+                        //ctx.drawImage(stage_image, 0,0);
+                    } else if (Stage == "circulatory"){
+                        //stage_image = new Image();
+                        //stage_image.src = 'circulatory stage.png'
+                        canvas.style.backgroundImage = 'url("circulatory stage.png")';
+                        //ctx = this.context;
+                        //ctx.drawImage(stage_image,0,0);
+                    }
             }
 
             function component(width, height, color, x, y, type) { //this is the function called for every object so that it can be created
@@ -58,6 +166,9 @@
                 immune_image.src = 'monocyte.png';    
                 this.update = function() {
                     ctx = myGameArea.context;
+                    //stage_image = new Image();
+                    //stage_image.src = 'circulatory stage.png'
+                    //ctx.drawImage(stage_image,0,0);
                     if (this.type == "text") {
                         ctx.font = this.width + " " + this.height;
                         ctx.fillStyle = color;
@@ -80,6 +191,13 @@
                         ctx.fillRect(this.x,this.y,60,5);
                         this.width = 60;
                         this.height = 5;
+                    } else if (this.type == "stop"){ //creates stop button
+                        ctx.fillStyle = "grey";
+                        ctx.fillRect(1200,10,100,40);
+                        ctx.fillStyle = "black";
+                        ctx.fillText("Stop",1200,40);
+                        //ctx.fillStyle = "black";
+                        //ctx.fillRect(1210,20,60,60);
                     }
 
                     
@@ -136,32 +254,59 @@
                             //console.log(myScore.text);
                             //console.log(myScore.type);  
                             //myScore.update();
+                        } else if (myBlaster[m].x > 1260){
+                            myBlaster.splice(m,1);
                         }
                     }
                     if (myGamePiece.crashWith(myObstacles[i])) { //ends game if player and obstacle collide
-                        myGameArea.stop();
-                        return;
+                        myObstacles.splice(i,1);
+                        Lives = Lives - 1;
+                        myLives.text = "LIVES: " + String(Lives);
+                        if (Lives == 0){
+                            myLives.update()
+                            myGameArea.stop();
+                            return;
+                        }
+                    }
+                    if (myObstacles[i].x <= 0){
+                        Lives = Lives - 1;
+                        myLives.text = "LIVES: " + String(Lives);
+                        if (Lives == 0){
+                            myLives.update()
+                            myGameArea.stop();
+                            return;
+                        }
                     } 
                     
                 }
                 myGameArea.clear();
+                Stop = new component(20,20,"",30,30,"stop");
                 myGameArea.frameNo += 1;
                 if (myGameArea.frameNo == 1 || everyinterval(150)) {
                     x = myGameArea.canvas.width;
                     minHeight = 20;
-                    maxHeight = 520;
-                    minGap = 50;
+                    maxHeight = 680;
+                    minGap = 70;
                     maxGap = 200;
-                    number = Math.random()+myGameArea.frameNo*0.001; //difficulty progresses with time
+                    //number = Math.random()+myGameArea.frameNo*0.001; //difficulty progresses with time
+                    number = Math.random()+(myGameArea.frameNo-(3*myGameArea.frameNo/4))*0.001;
+                    if (Stage == "circulatory"){ //more difficult
+                        number = number*1.5;
+                    }
                     //console.log(number);
                     checker = 1;
                     heights = [0];
                     for (i = 0; i < number; i += 1) {
                         height = Math.floor(Math.random()*(maxHeight-minHeight+1)+minHeight); //create a random y coordinate for obstacle within canvas height
+                        if (Stage == "olfactory") {
+                            while (height > 90 && height < 600) {
+                                height = Math.floor(Math.random()*(maxHeight-minHeight+1)+minHeight); //create a random y coordinate for obstacle
+                            }
+                        }
                         for (t=0; t < heights.length; t += 1){
                             //console.log(heights[t])
                             //console.log(height)
-                            if (Math.abs(heights[t] - height) > 20){ //make sure that there is space between obstacles (can delete)
+                            if (Math.abs(heights[t] - height) > 20 && heights.includes(height) == false){ //make sure that there is space between obstacles (can delete)
                                 heights.push(height);
                                 gap = Math.floor((Math.random()*(maxGap-minGap)*10)+minGap);
                                 myObstacles.push(new component(10, height, "green", x, height,"virus"));
@@ -171,17 +316,25 @@
                     }
                 }
                 for (i = 0; i < myObstacles.length; i += 1) {
-                    myObstacles[i].speedX = -1;
-                    myObstacles[i].newPos();
-                    myObstacles[i].update();
+                    if (Stage == "olfactory"){
+                        myObstacles[i].speedX = -1;
+                        myObstacles[i].newPos();
+                        myObstacles[i].update();
+                    }else if (Stage == "circulatory"){
+                        myObstacles[i].speedX = -1.75;
+                        myObstacles[i].newPos();
+                        myObstacles[i].update();
+                    }
                 }
                 for (t = 0; t < myBlaster.length; t+= 1){
-                    myBlaster[t].speedX = 1;
+                    myBlaster[t].speedX = 3;
                     myBlaster[t].newPos();
                     myBlaster[t].update();
                 }
                 //myScore.text="SCORE: " + myGameArea.frameNo;
                 myScore.update();
+                myLives.update();
+                Stop.update();
                 myGamePiece.newPos();    
                 myGamePiece.update();
             }
@@ -192,11 +345,30 @@
             }
 
             function moveup() {
-                myGamePiece.speedY = -10; 
+                if (myGamePiece.y > 29) {
+                    myGamePiece.speedY = -10;
+                }
+                if (Stage == "olfactory"){
+                    if (myGamePiece.y < 600 && myGamePiece.y > 100){
+                        myGamePiece.speedY = -500;
+                    } else if (myGamePiece.y > 30){
+                        myGamePiece.speedY = -10;
+                    }
+                } 
             }
 
-            function movedown() {
-                myGamePiece.speedY = 10; 
+            function movedown() { 
+                if (Stage == "olfactory"){
+                    if (myGamePiece.y < 100 && myGamePiece.y > 80){
+                        myGamePiece.speedY = 510;
+                    }
+                    else if (myGamePiece.y < 650){
+                        myGamePiece.speedY = 10;
+                    }
+                } 
+                if (myGamePiece.y < 650 && myGamePiece.y > 600){
+                    myGamePiece.speedY = 10;
+                }
             }
 
             function moveleft() {
@@ -213,7 +385,9 @@
             }
 
             function fire(){
-                myBlaster.push(new component(10,10,"red",myGamePiece.x+50,myGamePiece.y+(myGamePiece.width/2),"fire"));
+                if (myBlaster.length < 7) { //only got 7 blasts, after that, you gotta wait
+                    myBlaster.push(new component(10,10,"blue",myGamePiece.x+50,myGamePiece.y+(myGamePiece.width/2),"fire"));
+                }
             }
 
             document.onkeydown = function (e) {
@@ -247,7 +421,48 @@
             <button id="down" onmousedown="movedown()" onmouseup="clearmove()" ontouchstart="movedown()">DOWN</button>
         </div>-->
 
-        <p>You are the lymphocyte (the blue blob on the left). The green things that come on the right are viruses. Your job is to shoot as many of the viruses as possible.</p>
-        <p>Use the Up and Down keys to move your player. Press Spacebar to shoot lasers to destroy virus. If you get hit by virus, game over</p>
+        <!--<p>You are the lymphocyte (the blue blob on the left). The green things that come on the right are viruses. Your job is to shoot as many of the viruses as possible.</p>
+        <p>Use the Up and Down keys to move your player. Press Spacebar to shoot lasers to destroy virus. If you get hit by virus, game over</p>-->
+        <div class="area" style="width: 1280px; height: 720px;background-image: url('stage_selection_background.png'); background-size: contain;" hidden>
+            <div class="card" id="nose" style="width:400px; position:absolute; left: 150px; bottom: 140px;">
+                <img class="card-img-top" src="olfactory stage example.png" alt="Card image">
+                <div class="card-body">
+                  <h4 class="card-title">Olfactory Stage</h4>
+                  <p class="card-text">Difficulty: Easy</p>
+                </div>
+            </div>
+            <div class="card" id="heart" style="width:400px; position:absolute; left: 740px; bottom: 150px;">
+                <img class="card-img-top" src="circulatory stage example.png" alt="Card image">
+                <div class="card-body">
+                  <h4 class="card-title">Circulatory Stage</h4>
+                  <p class="card-text">Difficulty: Hard</p>
+                </div>
+            </div>
+        </div>
+        <div class="normalInstructions" style="width: 1280px; height: 720px;background-image: url('stage_selection_background.png'); background-size: contain;" hidden>
+            <div class="card" style="width:300px; position:absolute; left: 30px; bottom: 60px;">
+                <img class="card-img-top" src="monocyte.png" style="height:300px;" alt="Card image">
+                <div class="card-body">
+                  <h4 class="card-title">Introduction</h4>
+                  <p class="card-text">You are an immune cell tasked with an important duty: stop the invaders.</p>
+                  <p class="card-text">Movement: up and down arrow keys to move up or down</p>
+                </div>
+            </div>
+            <div class="card" style="width:400px; position:absolute; left: 400px; bottom: 55px;">
+                <img class="card-img-top" src="blaster example.png" alt="Card image">
+                <div class="card-body">
+                  <h4 class="card-title">Firing blaster</h4>
+                  <p class="card-text">Press spacebar to fire your blaster. Be careful, you can only fire 7 blasts before you need to wait while your blaster cools down</p>
+                </div>
+            </div>
+            <div class="card" style="width:400px; position:absolute; left: 850px; bottom: 120px;">
+                <img class="card-img-top" src="circulatory stage example.png" alt="Card image">
+                <div class="card-body">
+                  <h4 class="card-title">Lives</h4>
+                  <p class="card-text">If you get hit by the invader or an invader passes by you, you lose a heart.</p>
+                  <p class="card-text">You have 10 hearts before you fail your mission, so stop as many as you can!</p>
+                </div>
+            </div>
+        </div>
     </body>
 </html>
