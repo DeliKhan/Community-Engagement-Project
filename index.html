@@ -365,10 +365,12 @@
                     else if (myGamePiece.y < 650){
                         myGamePiece.speedY = 10;
                     }
-                } 
-                if (myGamePiece.y < 650 && myGamePiece.y > 600){
-                    myGamePiece.speedY = 10;
                 }
+                else {
+                    if (myGamePiece.y < 650){
+                        myGamePiece.speedY = 10;
+                    }
+                } 
             }
 
             function moveleft() {
