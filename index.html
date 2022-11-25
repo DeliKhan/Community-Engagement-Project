@@ -162,12 +162,22 @@
                         var scorecard = document.getElementsByClassName("scorecard")[0];
                         scorecard.hidden = false;
                         num_stars = 0;
-                        if (Score > 350){
-                            num_stars = 3;
-                        } else if (Score < 200){
-                            num_stars = 1;
-                        } else {
-                            num_stars = 2;
+                        if (Stage !== "stop"){
+                            if (Score > 350){
+                                num_stars = 3;
+                            } else if (Score < 200){
+                                num_stars = 1;
+                            } else {
+                                num_stars = 2;
+                            }    
+                        }else {
+                            if (Score > 50){
+                                num_stars = 3;
+                            } else if (Score < 15){
+                                num_stars = 1;
+                            } else {
+                                num_stars = 2;
+                            }
                         }
                         elements = scorecard.getElementsByTagName("span");
                         for (let i = 0; i < num_stars; i++){
@@ -363,9 +373,9 @@
                     }
                     if (myGamePiece.crashWith(myObstacles[i])) { //ends game if player and obstacle collide
                         if (Stage == "bonus"){
-                            Score = Score + 1;
                             myObstacles.splice(i,1);
-                            
+                            Score = Score + 1;
+                            myScore.text="SCORE: " + String(Score);
                         }else {
                             myObstacles.splice(i,1);
                             Lives = Lives - 1;
@@ -454,7 +464,7 @@
                         myObstacles[i].newPos();
                         myObstacles[i].update();
                     }else if (Stage == "bonus"){
-                        myObstacles[i].speedX = -2.75;
+                        myObstacles[i].speedX = -2;
                         myObstacles[i].newPos();
                         myObstacles[i].update();
                     }
@@ -466,7 +476,7 @@
                 }
                 //myScore.text="SCORE: " + myGameArea.frameNo;
                 //myLives.text = "Time: " + String(Math.floor(myGameArea.frameNo/144)) + ":" + String(Math.floor(((myGameArea.frameNo-Math.floor(myGameArea.frameNo/144))/12))).padStart(2,"0");
-                myLives.text = "Time: " + String(Math.floor(Lives/3600)) + ":" + String(Math.floor(Lives/3600)-Math.floor(Lives/60));
+                myLives.text = "Time: " + String(Math.floor(Lives/3600)) + ":" + String(Math.floor(Lives%3600)/60);
                 console.log(Lives);
                 //timer.update();
                 myScore.update();
@@ -476,6 +486,7 @@
                 myGamePiece.update();
                 if (Stage == "bonus"){
                    if (Lives <= 0){
+                        Stage="stop";
                         myGameArea.canvas.remove();
                         GameOver.start();
                    }
