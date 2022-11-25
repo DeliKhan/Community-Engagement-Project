@@ -14,7 +14,14 @@
             .card:hover {
                 transform: scale(1.2); /* (120% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
             }
+            .checked {
+                color: orange;
+            }
+
         </style>
+        
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+
         <!-- Latest compiled and minified CSS -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
 
@@ -38,7 +45,8 @@
             var Lives = 10;
             var Stage;
             var Stop;
-            
+            var GameOver;
+            var timer;
 
             function startGame() { //on call, will create the player, the scoreboard and call the creation of the background
                 myGamePiece = new component(30, 30, "red", 10, 80,"immune");
@@ -55,7 +63,7 @@
             var title = {
                 start : function() { //this creates the background, setting the size of the game area, set update interval
                     var video = document.createElement("video");
-                    video.src = "Title card 720p.mp4";
+                    video.src = "title_card_720p_encoded.mp4";
                     video.autoplay = true;
                     video.muted = true;
                     document.body.insertBefore(video, document.body.childNodes[0]);
@@ -86,6 +94,7 @@
                     area.hidden = false;
                     var nose = document.getElementById("nose");
                     var circulatory = document.getElementById("heart");
+                    var bonus = document.getElementById("bonus");
                     nose.addEventListener("click",function(){
                         area.hidden = true;
                         Stage = "olfactory";
@@ -98,19 +107,80 @@
                         //myGameArea.start();
                         instructions.start();
                     })
+                    bonus.addEventListener("click",function(){
+                        area.hidden = true;
+                        Stage = "bonus";
+                        instructions.start();
+                    })
                 }
             }
 
             var instructions = {
                 start : function() {
-                    if (Stage == "olfactory" || Stage == "circulatory"){
+                    if (Stage !== "bonus"){
                         var instructions = document.getElementsByClassName("normalInstructions")[0];
                         instructions.hidden = false;
+                        var instructions_2 = document.getElementsByClassName("normalInstructions2")[0];
+                        instructions.addEventListener("click",function(){
+                            instructions.hidden = true;
+                            var instructions_2 = document.getElementsByClassName("normalInstructions2")[0];
+                            instructions_2.hidden = false;
+                            if (Stage == "olfactory"){
+                                special_instructions = document.getElementById("nose_story");
+                                special_instructions.hidden = false;
+                            }else {
+                                special_instructions = document.getElementById("circulatory_story");
+                                special_instructions.hidden = false;
+                            }
+                        })
+                        instructions_2.addEventListener("click",function(){
+                            var instructions_2 = document.getElementsByClassName("normalInstructions2")[0];
+                            instructions_2.hidden = true;
+                            myGameArea.start();
+                        })
+                    } else {
+                        var instructions = document.getElementsByClassName("bonusInstructions")[0];
+                        instructions.hidden = false;
+                        instructions.addEventListener("click",function(){
+                            instructions.hidden = true;
+                            myGameArea.start();
+                        })
                     }
-                    instructions.addEventListener("click",function(){
-                        instructions.hidden = true;
-                        myGameArea.start();
-                    })
+                    
+                }
+            }
+
+            var GameOver = {
+                start : function(){
+                    var video = document.createElement("video");
+                    video.src = "game_over_720p_encoded.mp4";
+                    video.autoplay = true;
+                    video.muted = true;
+                    document.body.insertBefore(video, document.body.childNodes[0]);
+                    video.onended = function (){
+                        video.remove();
+                        var scorecard = document.getElementsByClassName("scorecard")[0];
+                        scorecard.hidden = false;
+                        num_stars = 0;
+                        if (Score > 350){
+                            num_stars = 3;
+                        } else if (Score < 200){
+                            num_stars = 1;
+                        } else {
+                            num_stars = 2;
+                        }
+                        elements = scorecard.getElementsByTagName("span");
+                        for (let i = 0; i < num_stars; i++){
+                            elements[i].className = "fa fa-star checked";
+                        }
+                        scoretext = scorecard.getElementsByTagName("h1")[0];
+                        scoretext.innerHTML = String(Score);
+                        scorecard.addEventListener("click",function(){
+                            scorecard.hidden = true;
+                            location.reload();
+                            //stage_selection.start();
+                        })
+                    }
                 }
             }
             var myGameArea = { 
@@ -126,13 +196,22 @@
                     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
                     choose_stage();
                     this.frameNo = 0;
-                    this.interval = setInterval(updateGameArea, 20);
+                    if (Stage == "bonus"){
+                        myLives = new component("30px", "Consolas", "black", 1000, 40, "text");
+                        myLives.text = "Timer: 5:00";
+                        Lives = 18000;
+                        this.interval = setInterval(updateGameArea, 5);
+                    }else {
+                        this.interval = setInterval(updateGameArea, 20);
+                    }
+                    
                     },
                 clear : function() {
                     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 },
                 stop : function() {
                     clearInterval(this.interval);
+                    this.canvas.remove();
                 }
             }
             function choose_stage() {
@@ -149,6 +228,9 @@
                         canvas.style.backgroundImage = 'url("circulatory stage.png")';
                         //ctx = this.context;
                         //ctx.drawImage(stage_image,0,0);
+                    } else {
+                        //canvas.style.backgroundImage = 'url("circulatory stage.png")';
+                        canvas.style.backgroundColor = "black";
                     }
             }
 
@@ -163,7 +245,9 @@
                 virus_image = new Image();
                 virus_image.src = 'virus.png';
                 immune_image = new Image();
-                immune_image.src = 'monocyte.png';    
+                immune_image.src = 'monocyte.png';   
+                circle_image = new Image();
+                circle_image.src = "circle.png";
                 this.update = function() {
                     ctx = myGameArea.context;
                     //stage_image = new Image();
@@ -171,17 +255,36 @@
                     //ctx.drawImage(stage_image,0,0);
                     if (this.type == "text") {
                         ctx.font = this.width + " " + this.height;
-                        ctx.fillStyle = color;
+                        if (Stage == "bonus"){
+                            ctx.fillStyle = "white";
+                        }
+                        else {
+                            ctx.fillStyle = color;
+                        }
                         ctx.fillText(this.text, this.x, this.y);
                     } else if (this.type == "virus"){ //create obstacle
                         
                         //base_image.onload = function(){
                         //    ctx.drawImage(base_image, this.x, this.y, 20, 20);
                         //}
-                        ctx.drawImage(virus_image, this.x, this.y, 40, 40);
-                        this.width = 40
-                        this.height = 40
+                        if (Stage == "bonus"){
+                            ctx.drawImage(circle_image, this.x, this.y, 20, 20);
+                            //this.width = 20;
+                            //this.height = 20;
+                            ctx.beginPath();
+                            ctx.arc(this.x,this.y,20,0, 2*Math.PI, false);
+                            ctx.fillStyle = 'white';
+                            ctx.fill();
+                            ctx.strokeStyle = '#003300';
+                            ctx.stroke();
+
+                        }else {
+                            ctx.drawImage(virus_image, this.x, this.y, 40, 40);
+                            this.width = 40;
+                            this.height = 40;
                         //ctx.fillRect(this.x, this.y, this.width, this.height);
+                        }
+                        
                     } else if(this.type == "immune"){ //create player
                         ctx.drawImage(immune_image, this.x, this.y, 70, 70);
                         this.width = 70
@@ -259,22 +362,31 @@
                         }
                     }
                     if (myGamePiece.crashWith(myObstacles[i])) { //ends game if player and obstacle collide
+                        if (Stage == "bonus"){
+                            Score = Score + 1;
+                            myObstacles.splice(i,1);
+                            
+                        }else {
+                            myObstacles.splice(i,1);
+                            Lives = Lives - 1;
+                            myLives.text = "LIVES: " + String(Lives);
+                            if (Lives == 0){
+                                myLives.update();
+                                myGameArea.canvas.remove();
+                                GameOver.start();
+                                //return;
+                            }
+                        }
+                    }
+                    if (myObstacles[i].x <= 0){
                         myObstacles.splice(i,1);
                         Lives = Lives - 1;
                         myLives.text = "LIVES: " + String(Lives);
                         if (Lives == 0){
-                            myLives.update()
-                            myGameArea.stop();
-                            return;
-                        }
-                    }
-                    if (myObstacles[i].x <= 0){
-                        Lives = Lives - 1;
-                        myLives.text = "LIVES: " + String(Lives);
-                        if (Lives == 0){
-                            myLives.update()
-                            myGameArea.stop();
-                            return;
+                            myLives.update();
+                            myGameArea.canvas.remove();
+                            GameOver.start();
+                            //return;
                         }
                     } 
                     
@@ -282,6 +394,9 @@
                 myGameArea.clear();
                 Stop = new component(20,20,"",30,30,"stop");
                 myGameArea.frameNo += 1;
+                if (Stage == "bonus"){
+                    Lives = Lives - 5;
+                }
                 if (myGameArea.frameNo == 1 || everyinterval(150)) {
                     x = myGameArea.canvas.width;
                     minHeight = 20;
@@ -289,12 +404,17 @@
                     minGap = 70;
                     maxGap = 200;
                     //number = Math.random()+myGameArea.frameNo*0.001; //difficulty progresses with time
-                    number = Math.random()+(myGameArea.frameNo-(3*myGameArea.frameNo/4))*0.001;
+                    if (Stage == "bonus"){
+                        number = 1;
+                    }else{
+                        number = Math.random()+(myGameArea.frameNo-(3*myGameArea.frameNo/4))*0.001;
+                    }
                     if (Stage == "circulatory"){ //more difficult
                         number = number*1.5;
                     }
                     //console.log(number);
                     checker = 1;
+                    flag = false;
                     heights = [0];
                     for (i = 0; i < number; i += 1) {
                         height = Math.floor(Math.random()*(maxHeight-minHeight+1)+minHeight); //create a random y coordinate for obstacle within canvas height
@@ -306,11 +426,20 @@
                         for (t=0; t < heights.length; t += 1){
                             //console.log(heights[t])
                             //console.log(height)
-                            if (Math.abs(heights[t] - height) > 20 && heights.includes(height) == false){ //make sure that there is space between obstacles (can delete)
-                                heights.push(height);
-                                gap = Math.floor((Math.random()*(maxGap-minGap)*10)+minGap);
-                                myObstacles.push(new component(10, height, "green", x, height,"virus"));
+                            if  (Math.abs(heights[t] - height) < 10 || heights.includes(height) == true){
+                                flag = true;
                             }
+                            //if (Math.abs(heights[t] - height) > 20 && heights.includes(height) == false){ //make sure that there is space between obstacles (can delete)
+                            //    heights.push(height);
+                            //    gap = Math.floor((Math.random()*(maxGap-minGap)*10)+minGap);
+                            //    myObstacles.push(new component(10, height, "green", x, height,"virus"));
+                            //}
+                        }
+                        if (flag == false){
+                            heights.push(height);
+                            gap = Math.floor((Math.random()*(maxGap-minGap)*10)+minGap);
+                            myObstacles.push(new component(10, height, "green", x, height,"virus"));
+                            flag = false;
                         }
 
                     }
@@ -324,6 +453,10 @@
                         myObstacles[i].speedX = -1.75;
                         myObstacles[i].newPos();
                         myObstacles[i].update();
+                    }else if (Stage == "bonus"){
+                        myObstacles[i].speedX = -2.75;
+                        myObstacles[i].newPos();
+                        myObstacles[i].update();
                     }
                 }
                 for (t = 0; t < myBlaster.length; t+= 1){
@@ -332,11 +465,21 @@
                     myBlaster[t].update();
                 }
                 //myScore.text="SCORE: " + myGameArea.frameNo;
+                //myLives.text = "Time: " + String(Math.floor(myGameArea.frameNo/144)) + ":" + String(Math.floor(((myGameArea.frameNo-Math.floor(myGameArea.frameNo/144))/12))).padStart(2,"0");
+                myLives.text = "Time: " + String(Math.floor(Lives/3600)) + ":" + String(Math.floor(Lives/3600)-Math.floor(Lives/60));
+                console.log(Lives);
+                //timer.update();
                 myScore.update();
                 myLives.update();
                 Stop.update();
                 myGamePiece.newPos();    
                 myGamePiece.update();
+                if (Stage == "bonus"){
+                   if (Lives <= 0){
+                        myGameArea.canvas.remove();
+                        GameOver.start();
+                   }
+                }
             }
 
             function everyinterval(n) {
@@ -403,7 +546,9 @@
                         // down arrow
                         break;
                     case 32:
-                        fire();
+                        if (Stage !== "bonus"){
+                            fire();
+                        }
                         //spacebar
                         break;
                 }
@@ -425,23 +570,29 @@
 
         <!--<p>You are the lymphocyte (the blue blob on the left). The green things that come on the right are viruses. Your job is to shoot as many of the viruses as possible.</p>
         <p>Use the Up and Down keys to move your player. Press Spacebar to shoot lasers to destroy virus. If you get hit by virus, game over</p>-->
-        <div class="area" style="width: 1280px; height: 720px;background-image: url('stage_selection_background.png'); background-size: contain;" hidden>
-            <div class="card" id="nose" style="width:400px; position:absolute; left: 150px; bottom: 140px;">
+        <div class="area" style="width: 1280px; height: 720px;background-image: url('select_stage_background_2.png'); background-size: contain;" hidden>
+            <div class="card" id="nose" style="width:400px; position:absolute; left: 50px; bottom: 140px;">
                 <img class="card-img-top" src="olfactory stage example.png" alt="Card image">
                 <div class="card-body">
                   <h4 class="card-title">Olfactory Stage</h4>
                   <p class="card-text">Difficulty: Easy</p>
                 </div>
             </div>
-            <div class="card" id="heart" style="width:400px; position:absolute; left: 740px; bottom: 150px;">
+            <div class="card" id="heart" style="width:350px; position:absolute; left: 490px; bottom: 160px;">
                 <img class="card-img-top" src="circulatory stage example.png" alt="Card image">
                 <div class="card-body">
                   <h4 class="card-title">Circulatory Stage</h4>
                   <p class="card-text">Difficulty: Hard</p>
                 </div>
             </div>
+            <div class="card" id="bonus" style="width:350px; position:absolute; left: 900px; bottom: 170px;">
+                <img class="card-img-top" src="circulatory stage example.png" alt="Card image">
+                <div class="card-body">
+                  <h4 class="card-title">Bonus round</h4>
+                </div>
+            </div>
         </div>
-        <div class="normalInstructions" style="width: 1280px; height: 720px;background-image: url('stage_selection_background.png'); background-size: contain;" hidden>
+        <!--<div class="normalInstructions" style="width: 1280px; height: 720px;background-image: url('stage_selection_background.png'); background-size: contain;" hidden>
             <div class="card" style="width:300px; position:absolute; left: 30px; bottom: 60px;">
                 <img class="card-img-top" src="monocyte.png" style="height:300px;" alt="Card image">
                 <div class="card-body">
@@ -465,6 +616,67 @@
                   <p class="card-text">You have 10 hearts before you fail your mission, so stop as many as you can!</p>
                 </div>
             </div>
+        </div>-->
+        <div class="normalInstructions" style="width: 1280px; height: 720px;background-image: url('instructions_background.png'); background-size: contain;" hidden>
+            <div class="card" style="width:500px; position:absolute; left: 100px; bottom: 105px;">
+                <img class="card-img-top" src="monocyte.png" style="height:200px;width:400px;padding-left:100px;" alt="Card image">
+                <div class="card-body">
+                  <h4 class="card-title">Introduction</h4>
+                  <p class="card-text">You are an immune cell, dedicated to protecting the human you live in. As such, you get a report that covid-19 viruses have invaded the human.</p>
+                  <p class="card-text">Movement: up and down arrow keys to move up or down</p>
+                </div>
+            </div>
+            <div class="card" style="width:500px; position:absolute; left: 700px; bottom: 95px;">
+                <img class="card-img-top" src="virus.png" style="height:200px;width:400px;padding-left:150px;" alt="Card image">
+                <div class="card-body">
+                  <h4 class="card-title">The problem</h4>
+                  <p class="card-text">These viruses, if they get into the brain, are able to cause serious havoc. They can cause a condition called CLOCC, which is temporary damage to the part of the brain called the corpus callosum. During this infection, your human will suffer from epilepsy; recurrent seizures, which is no fun.</p>
+                </div>
+            </div>
+        </div>
+        <div class="normalInstructions2" style="width: 1280px; height: 720px;background-image: url('instructions_background.png'); background-size: contain;" hidden>
+            <div class="card" id="nose_story" style="width:500px; position:absolute; left: 100px; bottom: 55px;" hidden>
+                <img class="card-img-top" src="blaster example nose.png" style="height:200px;" alt="Card image">
+                <div class="card-body">
+                  <h4 class="card-title">Firing blaster</h4>
+                  <p class="card-text">As such, you have been dispatched to the nose to stop the covid-19 viruses in their track. The nose is a direct pathway that the covid-19 viruses can easily take to get to the brain, as they have the ability to jump from neuron to neuron. You have been granted this ability in order to catch them.</p>
+                  <p class="card-text">Movement: up and down arrow keys to move up or down</p>
+                  <p class="card-text">To stop a virus, press spacebar to fire your blaster. Take care though, you only have 7 blasts that you can use at a time.</p>
+                </div>
+            </div>
+            <div class="card" id="circulatory_story" style="width:500px; position:absolute; left: 100px; bottom: 55px;" hidden>
+                <img class="card-img-top" src="blaster example 1.png" style="height:200px;" alt="Card image">
+                <div class="card-body">
+                  <h4 class="card-title">Firing blaster</h4>
+                  <p class="card-text">As such, you have been dispatched into the blood to stop the covid-19 viruses in their track. This pathway is much harder for them to get into the brain, so the viruses have come as an army in order to reach the brain.</p>
+                  <p class="card-text">Movement: up and down arrow keys to move up or down</p>
+                  <p class="card-text">To stop a virus, press spacebar to fire your blaster. Take care though, you only have 7 blasts that you can use at a time.</p>
+                </div>
+            </div>
+            <div class="card" style="width:400px; position:absolute; left: 750px; bottom: 120px;">
+                <img class="card-img-top" src="circulatory stage example.png" alt="Card image">
+                <div class="card-body">
+                    <h4 class="card-title">Lives</h4>
+                    <p class="card-text">If you get hit by the invader or an invader passes by you, you lose a heart.</p>
+                    <p class="card-text">You have 10 hearts before you fail your mission, so stop as many as you can!</p>
+                </div>
+            </div>
+        </div>
+        <div class="bonusInstructions" style="width: 1280px; height: 720px;background-image: url('instructions_background.png'); background-size: contain;" hidden>
+            <div class="card" style="width:600px; position:absolute; left: 400px; bottom: 55px;">
+                <img class="card-img-top" src="blaster example nose.png" style="height:200px;" alt="Card image">
+                <div class="card-body">
+                  <h4 class="card-title">Bonus stage</h4>
+                  <p class="card-text">The viruses have begun infecting the cells in different areas of the body. Our priority has now moved from stopping the covid-19 viruses, to stopping the production of cytokines. Cytokines are small molecules that are released by the cells of the body when attacked. If too many of these are produced, these can enter the brain and cause CLOCC. In order to stop this, you must eat up as many of these cytokines (the round circles) as you can. Good luck!</p>
+                  <p class="card-text">Movement: up and down arrow keys to move up or down</p>
+                </div>
+            </div>
+        </div>
+        <div class="scorecard" style="width: 1280px; height: 720px;background-image: url('score_card.png'); background-size: contain;" hidden>
+            <span class="fa fa-star" style="position:absolute; left: 260px;top: 150px;font-size: 175px;"></span>
+            <span class="fa fa-star" style="position:absolute; left: 560px;top: 150px;font-size: 175px"></span>
+            <span class="fa fa-star" style="position:absolute; left: 860px;top: 150px;font-size: 175px"></span>
+            <h1 id="yourscore" style="position:absolute;left:470px;bottom:85px;font-size: 200px;color:#f1f1f1">hi</h1>
         </div>
     </body>
 </html>
