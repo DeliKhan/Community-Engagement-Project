@@ -3,10 +3,6 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <style>
-            html, body{
-                width:1280px;
-                height: 720px;
-            }
             canvas {
                 border:1px solid #d3d3d3;
                 background-color: #f1f1f1;
@@ -82,6 +78,10 @@
                         video.remove();
                         stage_selection.start();
                     });
+                    //video.addEventListener("keydown",function(){
+                    //    video.remove();
+                    //    stage_selection.start();
+                    //});
                 }
             }
 
@@ -638,15 +638,14 @@
                 <img class="card-img-top" src="monocyte.png" style="height:200px;width:400px;padding-left:100px;" alt="Card image">
                 <div class="card-body">
                   <h4 class="card-title">Introduction</h4>
-                  <p class="card-text">You are an immune cell, dedicated to protecting the human you live in. As such, you get a report that covid-19 viruses have invaded the human.</p>
-                  <p class="card-text">Movement: up and down arrow keys to move up or down</p>
+                  <p class="card-text">You are an immune cell, a cell that patrols the body for invaders; dedicated to protecting the human you live in. As such, you get a report that covid-19 viruses have invaded the human.</p>
                 </div>
             </div>
-            <div class="card" style="width:500px; position:absolute; left: 700px; bottom: 95px;">
+            <div class="card" style="width:500px; position:absolute; left: 700px; bottom: 85px;">
                 <img class="card-img-top" src="virus.png" style="height:200px;width:400px;padding-left:150px;" alt="Card image">
                 <div class="card-body">
                   <h4 class="card-title">The problem</h4>
-                  <p class="card-text">These viruses, if they get into the brain, are able to cause serious havoc. They can cause a condition called CLOCC, which is temporary damage to the part of the brain called the corpus callosum. During this infection, your human will suffer from epilepsy; recurrent seizures, which is no fun.</p>
+                  <p class="card-text">These viruses, if they get into the brain, are able to cause serious havoc. They can cause a condition called CLOCC, which is temporary damage to a structure that connects both sides of the brain together, called the corpus callosum. During this infection, your human will suffer from recurrent seizures, a condition called epilepsy. Seizures are sudden, abnormal activity in the brain which can cause jerking movements, stiffening, falling down and others, all which are no fun.</p>
                 </div>
             </div>
         </div>
@@ -679,11 +678,11 @@
             </div>
         </div>
         <div class="bonusInstructions" style="width: 1280px; height: 720px;background-image: url('instructions_background.png'); background-size: contain;" hidden>
-            <div class="card" style="width:600px; position:absolute; left: 400px; bottom: 55px;">
-                <img class="card-img-top" src="blaster example nose.png" style="height:200px;" alt="Card image">
+            <div class="card" style="width:500px; position:absolute; left: 400px; bottom: 55px;">
+                <img class="card-img-top" src="bonus_example.png" style="height:200px;" alt="Card image">
                 <div class="card-body">
                   <h4 class="card-title">Bonus stage</h4>
-                  <p class="card-text">The viruses have begun infecting the cells in different areas of the body. Our priority has now moved from stopping the covid-19 viruses, to stopping the production of cytokines. Cytokines are small molecules that are released by the cells of the body when attacked. If too many of these are produced, these can enter the brain and cause CLOCC. In order to stop this, you must eat up as many of these cytokines (the round circles) as you can. Good luck!</p>
+                  <p class="card-text">The viruses have begun infecting the cells in different areas of the body. Our priority has now moved from stopping the covid-19 viruses, to stopping the production of cytokines. Cytokines are small molecules that are released by cells when attacked. If too many of these are produced, these can enter the brain and cause CLOCC. In order to stop this, you must eat up as many of these cytokines (the round circles) as you can. Good luck!</p>
                   <p class="card-text">Movement: up and down arrow keys to move up or down</p>
                 </div>
             </div>
