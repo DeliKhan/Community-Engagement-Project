@@ -476,7 +476,7 @@
                 }
                 //myScore.text="SCORE: " + myGameArea.frameNo;
                 //myLives.text = "Time: " + String(Math.floor(myGameArea.frameNo/144)) + ":" + String(Math.floor(((myGameArea.frameNo-Math.floor(myGameArea.frameNo/144))/12))).padStart(2,"0");
-                myLives.text = "Time: " + String(Math.floor(Lives/3600)) + ":" + String(Math.floor(Lives%3600)/60);
+                myLives.text = "Time: " + String(Math.floor(Lives/3600)) + ":" + String(Math.floor(Lives%3600/60)).padStart(2,"0");
                 console.log(Lives);
                 //timer.update();
                 myScore.update();
