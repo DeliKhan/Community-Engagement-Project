@@ -46,13 +46,12 @@
             var Stage;
             var Stop;
             var GameOver;
-            var timer;
 
             function startGame() { //on call, will create the player, the scoreboard and call the creation of the background
                 myGamePiece = new component(30, 30, "red", 10, 80,"immune");
                 myScore = new component("30px", "Consolas", "black", 280, 40, "text");
                 myScore.text = "SCORE: 0";
-                myLives = new component("30px", "Consolas", "black", 1000, 40, "text");
+                myLives = new component("30px", "Consolas", "black", 600, 40, "text");
                 myLives.text = "LIVES: 10";
                 Stop = new component(20,20,"",30,30,"stop");
                 title_card = new component(30,30,"",30,30,"title");
@@ -169,18 +168,22 @@
                         if (Stage !== "stop"){
                             if (Score > 350){
                                 num_stars = 3;
-                            } else if (Score < 200){
+                            } else if (Score > 200 && Score > 50){
+                                num_stars = 2;
+                            } else if (Score > 50) {
                                 num_stars = 1;
                             } else {
-                                num_stars = 2;
-                            }    
+                                num_stars = 0;
+                            }   
                         }else {
                             if (Score > 50){
                                 num_stars = 3;
-                            } else if (Score < 15){
+                            } else if (Score > 20){
+                                num_stars = 2;
+                            } else if (Score > 10) {
                                 num_stars = 1;
                             } else {
-                                num_stars = 2;
+                                num_stars = 0;
                             }
                         }
                         elements = scorecard.getElementsByTagName("span");
@@ -211,7 +214,7 @@
                     choose_stage();
                     this.frameNo = 0;
                     if (Stage == "bonus"){
-                        myLives = new component("30px", "Consolas", "black", 1000, 40, "text");
+                        myLives = new component("30px", "Consolas", "black", 600, 40, "text");
                         myLives.text = "Timer: 5:00";
                         Lives = 18000;
                         this.interval = setInterval(updateGameArea, 5);
@@ -310,9 +313,14 @@
                         this.height = 5;
                     } else if (this.type == "stop"){ //creates stop button
                         ctx.fillStyle = "grey";
-                        ctx.fillRect(1200,10,100,40);
-                        ctx.fillStyle = "black";
-                        ctx.fillText("Stop",1200,40);
+                        ctx.fillRect(1000,10,300,40);
+                        if (Stage == "bonus"){
+                            ctx.fillStyle = "white";
+                        }
+                        else {
+                            ctx.fillStyle = "black";
+                        }
+                        ctx.fillText("Press ESC to stop",1000,40);
                         //ctx.fillStyle = "black";
                         //ctx.fillRect(1210,20,60,60);
                     }
@@ -567,6 +575,13 @@
                         }
                         //spacebar
                         break;
+                    case 27:
+                        if (Stage == "bonus"){
+                            Stage = "stop";
+                        }
+                        myGameArea.canvas.remove();
+                        GameOver.start();
+                        
                 }
             };
 
@@ -691,7 +706,7 @@
             <span class="fa fa-star" style="position:absolute; left: 260px;top: 150px;font-size: 175px;"></span>
             <span class="fa fa-star" style="position:absolute; left: 560px;top: 150px;font-size: 175px"></span>
             <span class="fa fa-star" style="position:absolute; left: 860px;top: 150px;font-size: 175px"></span>
-            <h1 id="yourscore" style="position:absolute;left:470px;bottom:85px;font-size: 200px;color:#f1f1f1">hi</h1>
+            <h1 id="yourscore" style="position:absolute;left:550px;bottom:85px;font-size: 200px;color:#f1f1f1">hi</h1>
         </div>
     </body>
 </html>
